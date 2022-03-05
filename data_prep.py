@@ -97,6 +97,7 @@ if __name__ == "__main__":
     # Get matrix of counts per article/customer
     X_counts = get_counts(df_articles, 'article_id', df_customers, 'customer_id', df_train)
 
+    # For each product (article) and customer derive the counts of transactions across all (sparse matrix)
     X_ = create_X_matrix(df_articles, 'article_id', df_customers, 'customer_id', df_train, X_counts)
 
 
