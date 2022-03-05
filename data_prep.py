@@ -7,15 +7,9 @@ from scipy import sparse
 
 
 
-from data_explore import load_datasets, histogram
+from data_functions import load_datasets, histogram
 
-# Load up datasets
-df_articles, df_customers, df_train = load_datasets()
 
-# Price distribution
-chart = histogram(df_train, 'price', col='sales_channel_id')
-#chart = histogram(df_train, 'price')
-altair_viewer.display(chart)
 
 def get_counts(objects, object_key, users, users_key, sales):
 
@@ -33,18 +27,19 @@ def get_counts(objects, object_key, users, users_key, sales):
     :return: dataframe with columns: object_key | users_key | count | row_idx | col_idx
     """
     # Summarise sales (counts)
-    sales_summary = sales.groupby([object_key, users_key]).size().reset_index()
+    sales_summary = sales.groupby([object_key, users_key]).size().reset_index().rename(columns={0:'volume'})
 
     # Get index position for rows and columns
     sales_summary = sales_summary.merge(objects[object_key].reset_index(), on=object_key, how='left')
     sales_summary.rename(columns={'index': 'row_idx'}, inplace=True)
 
-    sales_summary = sales_summary.merge(users[users_key].reset_index(), on=users_key, how='left')
+    sales_summary = sales_summary.merge(users[users_key].reset_index(), on=users_key, how='left').sort_values([object_key, users_key])
     sales_summary.rename(columns={'index': 'col_idx'}, inplace=True)
+
 
     return sales_summary
 
-def create_X_matrix(objects, object_key, users, users_key, sales):
+def create_X_matrix(objects, object_key, users, users_key, sales, counts):
 
     """
 
@@ -55,23 +50,18 @@ def create_X_matrix(objects, object_key, users, users_key, sales):
     :param users:
     :param users_key:
     :param sales:
+    :param counts: dataframe with object/user counts
     :return:
     """
 
-    """ Objects: Rows of matrix - representing the count of times the article was purchases
-        users: Columns of matrix - representing each customer
-
-        NOTE - 2022-03-04 - The original datraframe was going ot have >1m column and 105k rows.
-                May better to try using a sparse dataframe.
-    """
 
     # Create a sparse matrix of shape 'articles' by 'customers'
     X_ = sparse.csr_matrix((objects.shape[0], users.shape[0]))
 
+    # Update values of sparse matrix
+    X_[counts.row_idx, counts.col_idx] = counts.volume
 
-
-a = create_X_matrix(df_articles, 'article_id', df_customers, 'customer_id', df_train)
-
+    return X_
 
 
 
@@ -90,4 +80,25 @@ def plot_sales_vols(X):
 
     # Display the chart
     altair_viewer.display(chart)
-s
+
+if __name__ == "__main__":
+
+    # Set this to None to read in all training data (transactions)
+    nsample = 50000
+
+    # Load up datasets
+    df_articles, df_customers, df_train = load_datasets(nsample)
+
+    # # Price distribution
+    # chart = histogram(df_train, 'price', col='sales_channel_id')
+    # # chart = histogram(df_train, 'price')
+    # altair_viewer.display(chart)
+
+    # Get matrix of counts per article/customer
+    X_counts = get_counts(df_articles, 'article_id', df_customers, 'customer_id', df_train)
+
+    X_ = create_X_matrix(df_articles, 'article_id', df_customers, 'customer_id', df_train, X_counts)
+
+
+
+# a = create_X_matrix(df_articles, 'article_id', df_customers, 'customer_id', df_train, X_counts)

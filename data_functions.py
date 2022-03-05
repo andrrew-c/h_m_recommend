@@ -3,10 +3,7 @@ import altair as alt
 
 from project_secrets import data_path
 
-nsample = 5000
-
-
-def load_datasets():
+def load_datasets(nsample = None):
     # What does a sample submission look like?
     df_sample_sub = pd.read_csv(f"{data_path}/sample_submission.csv")
 
