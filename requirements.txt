@@ -2,3 +2,4 @@ pandas
 altair
 altair_viewer
 scipy
+sklearn
