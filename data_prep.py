@@ -1,6 +1,8 @@
 from datetime import datetime
 from scipy import sparse
 
+import pickle
+
 from sklearn.decomposition import NMF
 from constants import nsample, rseed, verbose, models_path
 
@@ -111,8 +113,10 @@ class nmf_model():
 
     def approx_data(self):
         """ Using the weights - calculate approximation of original data """
-        
+
+        start = datetime.now()
         self.estimated_sales = self.model.inverse_transform(sparse.lil_matrix(self.W))
+        print(f"Processed estimated sales based on W x H. Took {datetime.now() - start}")
 
     def estimate_sales(self, idx):
         """
@@ -139,8 +143,9 @@ if __name__ == "__main__":
     # Create instance of nmf model and train it
     nmf.create_model(10, 'random', rseed, 10)
 
-    # Testing out how long it would take to process it row by row (obviously not best way)
-    esales = []
-    for i in range(10):
-        esales.append(nmf.estimate_sales(i))
+    ## Approximate date using full matrix
+    #nmf.approx_data()
+
+    # Pickle nmf model
+    with open('nmf_model.pkl', 'wb') as f: pickle.dump(nmf, f)
 
