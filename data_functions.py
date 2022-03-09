@@ -26,7 +26,6 @@ def load_datasets(nsample = None):
 
     return df_articles, df_customers, df_train
 
-
 def plot_sales_vols(X):
 
     """ Line chart providing volumes of sales by channel and date """
