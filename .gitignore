@@ -1,3 +1,4 @@
 indata/
 project_secrets.py
 *.pkl
+submissions/
