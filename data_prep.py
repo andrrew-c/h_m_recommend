@@ -8,7 +8,7 @@ from constants import nsample, rseed, verbose, models_path
 
 from data_functions import load_datasets
 
-class nmf_model():
+class nmf_model:
 
     def __init__(self, object_key, users_key, nsample=None):
 
@@ -111,7 +111,7 @@ class nmf_model():
         # Return the 'user' matrix - n components by Y users
         self.H = sparse.lil_matrix(self.model.components_)
 
-    def approx_data(self):
+    def approx_original_data(self):
         """ Using the weights - calculate approximation of original data """
 
         start = datetime.now()
@@ -132,7 +132,24 @@ class nmf_model():
         print(f"Processed estimated sales based on W x H. Took {datetime.now()-start}")
         return est_sales
 
-    def save_model(self):
+    def save_model(self, name_prefix='nmf'):
+
+        """ Save the model to a pickled object"""
+
+        # Now in YYYYMMDD_HHMMSS format
+        now = datetime.today().strftime('%Y%m%d_%H%M%S')
+
+        # Filename to output
+        fname = f"{name_prefix}_{now}.pkl"
+
+        start = datetime.now()
+        # Open up binary file and dump object
+        with open(fname, 'wb') as f: pickle.dump(self, f)
+        print(f"Saved model with name {fname}")
+        print(f"Processing time: {datetime.now()-start}")
+
+
+    def load_model(self):
         pass
 
 if __name__ == "__main__":
@@ -144,8 +161,9 @@ if __name__ == "__main__":
     nmf.create_model(10, 'random', rseed, 10)
 
     ## Approximate date using full matrix
-    #nmf.approx_data()
+    #nmf.approx_original_data()
 
     # Pickle nmf model
-    with open('nmf_model.pkl', 'wb') as f: pickle.dump(nmf, f)
+    nmf.save_model()
+
 
